@@ -6,34 +6,44 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main">
-
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Search for a subreddit"
+            android:text="@string/search_lable"
             android:textAlignment="center"
             android:textSize="32px"/>
         <android.support.design.widget.TextInputEditText
             android:id="@+id/textInput1"
-            android:layout_width="360px"
+            android:layout_width="match_parent"            
             android:layout_height="wrap_content"
-            android:hint="Search"/>
+            android:hint="@string/search_text"/>
         <Button
             android:id="@id/search_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="32px"
-            android:text="Search"/>
-        
-        <LinearLayout
-            android:id="@+id/subreddit__list"
+            android:text="@string/search_btn"/>
+		<ListView
+			android:minWidth="25px"
+			android:minHeight="25px"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/listView1" />
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"/>
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:id="@+id/subreddit__list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+        </ScrollView>
     </LinearLayout>
 
 </RelativeLayout>

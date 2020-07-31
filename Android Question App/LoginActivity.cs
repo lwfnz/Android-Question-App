@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.OS;
@@ -11,6 +12,8 @@ using Android.Views;
 using Android.Widget;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Android.Views.InputMethods;
+
 
 namespace Android_Question_App
 {
@@ -30,33 +33,68 @@ namespace Android_Question_App
             searchButton.Click += SearchButton_Click;
         }
 
-        private void SearchButton_Click(object sender, EventArgs e)
+        //async for better UX
+        public async Task DownloadJsonFile(string url)
         {
-            var json = new WebClient().DownloadString("http://www.reddit.com/subreddits/search.json?q=" + FindViewById<TextInputEditText>(Resource.Id.textInput1).Text);
-            var subreddits = JsonConvert.DeserializeObject<JObject>(json);
-
-            foreach (var subreddit in subreddits["data"]["children"] as JArray)
+            try
             {
-                var name = subreddit["data"]["display_name_prefixed"].ToString();
+                var httpClient = new HttpClient();
 
-                var subredditList = FindViewById<LinearLayout>(Resource.Id.subreddit__list);
-                var newListItem = new TextView(this);
-                newListItem.Text = name;
-                newListItem.Click += NewListItem_Click;
+                Task<string> contentsTask = httpClient.GetStringAsync(url);
 
-                subredditList.AddView(newListItem);
+                string contents = await contentsTask;
+
+                var subreddits = JsonConvert.DeserializeObject<JObject>(contents);
+
+                var txtList = FindViewById<LinearLayout>(Resource.Id.subreddit__list);
+
+                //clean all items first
+                txtList.RemoveAllViewsInLayout();
+
+                foreach (var subreddit in subreddits["data"]["children"] as JArray)
+                {
+                    var name = subreddit["data"]["display_name_prefixed"].ToString();
+
+                    var newListItem = new TextView(this);
+                    newListItem.Text = name;
+                    newListItem.Click += NewListItem_Click;
+
+                    txtList.AddView(newListItem);
+                }
+
             }
+            catch
+            {
+                Toast.MakeText(this, "searching failure", ToastLength.Short).Show();
+            }
+
         }
+
+        private async void SearchButton_Click(object sender, EventArgs e)
+        {
+            var txt = FindViewById<TextInputEditText>(Resource.Id.textInput1).Text;
+            var jsonUrl = "http://www.reddit.com/subreddits/search.json?q=" + txt;
+
+            await DownloadJsonFile(jsonUrl);
+
+        }
+
 
         private void NewListItem_Click(object sender, EventArgs e)
         {
             var listItem = (TextView)sender;
             var subredditName = listItem.Text;
-            var sidebarHtml = new WebClient().DownloadString("http://www.reddit.com/" + subredditName + "/about/sidebar");
 
-            var intent = new Intent(this, typeof(SidebarActivity));
-            intent.PutExtra("sidebarHtml", sidebarHtml);
-            this.StartActivity(intent);
+            if (subredditName.Trim() != "")
+            {
+                var sidebarUrl = "http://www.reddit.com/" + subredditName + "/about/sidebar";
+
+                var intent = new Intent(this, typeof(SidebarActivity));
+                intent.PutExtra("sidebarUrl", sidebarUrl);
+                StartActivity(intent);
+            }
+
+
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)
@@ -76,6 +114,5 @@ namespace Android_Question_App
 
             base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-	}
+    }
 }
-
